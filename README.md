@@ -3814,7 +3814,7 @@ to explictly select provider to fetch algorithms.
 
 ### store:add
 
-**syntax**: *ok, err = store:add(x509_or_crl, skip_set_flags?)*
+**syntax**: *ok, err = store:add(x509_or_crl, skip_set_crl_check_flags?)*
 
 Adds a X.509 or a CRL object into store.
 The argument must be a [resty.openssl.x509](#restyopensslx509) instance or a
