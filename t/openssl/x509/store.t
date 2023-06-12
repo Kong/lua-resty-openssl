@@ -492,10 +492,10 @@ truenil
 nil(?:unable to get certificate CRL|x509\.store:check_revocation: this API is not supported in BoringSSL)
 nil(?:x509\.store:check_revocation: expect a x509\.crl instance or a table of x509\.crl instance at #2|x509\.store:check_revocation: this API is not supported in BoringSSL)
 nil(?:x509\.store:check_revocation: expect a x509\.crl instance or a table of x509\.crl instance at #2|x509\.store:check_revocation: this API is not supported in BoringSSL)
-(?:truenil|x509\.store:check_revocation: this API is not supported in BoringSSL)
-(?:truenil|x509\.store:check_revocation: this API is not supported in BoringSSL)
+(?:truenil|nilx509\.store:check_revocation: this API is not supported in BoringSSL)
+(?:truenil|nilx509\.store:check_revocation: this API is not supported in BoringSSL)
 nil(?:certificate revoked|x509\.store:check_revocation: this API is not supported in BoringSSL)
-(?:truenil|x509\.store:check_revocation: this API is not supported in BoringSSL)
+(?:truenil|nilx509\.store:check_revocation: this API is not supported in BoringSSL)
 nil(?:certificate revoked|x509\.store:check_revocation: this API is not supported in BoringSSL)
 "
 --- no_error_log
