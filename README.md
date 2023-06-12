@@ -3814,11 +3814,15 @@ to explictly select provider to fetch algorithms.
 
 ### store:add
 
-**syntax**: *ok, err = store:add(x509_or_crl)*
+**syntax**: *ok, err = store:add(x509_or_crl, skip_set_flags?)*
 
 Adds a X.509 or a CRL object into store.
 The argument must be a [resty.openssl.x509](#restyopensslx509) instance or a
 [resty.openssl.x509.crl](#restyopensslx509crl) instance.
+
+By default, adding a CRL object will automatically set the flag to store
+`X509_V_FLAG_CRL_CHECK`. Setting the second optional argument to `true` will
+skip settting the flags.
 
 [Back to TOC](#table-of-contents)
 
@@ -3950,16 +3954,12 @@ for all available flags.
 
 ### store:check_revocation
 
-**syntax**: *ok, err = store:check_revocation(verified_chain, crls?, properties?)*
+**syntax**: *ok, err = store:check_revocation(verified_chain, properties?)*
 
 Only does the revocation check. The first argument `verified_chain` must be a
 [resty.openssl.x509.chain](#restyopensslx509chain) instance which could be returned from
 `store_ctx:verify` or be built by yourself. Note the first cert needs to be the end entity
 certificate you want to check and the second cert needs to be its issuer.
-
-The second optional argument `crls` must be a [resty.openssl.x509.crl](#restyopensslx509crl)
-instance or a table of [resty.openssl.x509.crl](#restyopensslx509crl) instance. It's used as
-additional crls which will not be added into the store.
 
 Staring from OpenSSL 3.0, this function accepts an optional `properties` parameter
 to explictly select provider to fetch algorithms.

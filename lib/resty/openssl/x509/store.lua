@@ -57,7 +57,7 @@ function _M:use_default(properties)
   return true
 end
 
-function _M:add(item)
+function _M:add(item, skip_set_flags)
   local dup
   local err
   if x509_lib.istype(item) then
@@ -85,7 +85,7 @@ function _M:add(item)
     -- enables CRL checking for the certificate chain leaf certificate.
     -- An error occurs if a suitable CRL cannot be found.
     -- Note: this does not check for certificates in the chain.
-    if C.X509_STORE_set_flags(self.ctx, 0x4) ~= 1 then
+    if not skip_set_flags and C.X509_STORE_set_flags(self.ctx, 0x4) ~= 1 then
       return false, format_error("x509.store:add: X509_STORE_set_flags")
     end
     -- decrease the dup ctx ref count immediately to make leak test happy
@@ -238,7 +238,7 @@ function _M:verify(x509, chain, return_chain, properties, verify_method, flags)
 
 end
 
-function _M:check_revocation(verified_chain, crls, properties)
+function _M:check_revocation(verified_chain, properties)
   if BORINGSSL then
     return nil, "x509.store:check_revocation: this API is not supported in BoringSSL"
   end
@@ -249,24 +249,6 @@ function _M:check_revocation(verified_chain, crls, properties)
 
   if not verified_chain or not chain_lib.istype(verified_chain) then
     return nil, "x509.store:check_revocation: expect a x509.chain instance at #1"
-  end
-
-  local crl_table
-  if crls then
-    if crl_lib.istype(crls) then
-      crl_table = { crls }
-
-    elseif type(crls) == "table" then
-      for _, v in ipairs(crls) do
-        if not crl_lib.istype(v) then
-          return nil, "x509.store:check_revocation: expect a x509.crl instance or a table of x509.crl instance at #2"
-        end
-      end
-      crl_table = crls
-
-    else
-      return nil, "x509.store:check_revocation: expect a x509.crl instance or a table of x509.crl instance at #2"
-    end
   end
 
   local ctx
@@ -286,32 +268,6 @@ function _M:check_revocation(verified_chain, crls, properties)
   end
 
   C.X509_STORE_CTX_set0_verified_chain(ctx, verified_chain.ctx)
-
-  if crl_table then
-    local raw, err = crl_stack_new()
-    if raw == nil then
-      return nil, "x509.store:check_revocation: " .. err
-    end
-
-    local crl_stack = setmetatable({
-      ctx = raw,
-    }, crl_stack_mt)
-
-    for _, crl in ipairs(crl_table) do
-      local dup = C.X509_CRL_dup(crl.ctx)
-      if dup == nil then
-        return nil, format_error("x509.store:check_revocation: X509_CRL_dup")
-      end
-
-      local ok, err = crl_stack_add(crl_stack.ctx, dup)
-      if not ok then
-        C.X509_CRL_free(dup)
-        return nil, err
-      end
-    end
-
-    C.X509_STORE_CTX_set0_crls(ctx, crl_stack.ctx)
-  end
 
   -- enables CRL checking for the certificate chain leaf certificate.
   -- An error occurs if a suitable CRL cannot be found.

@@ -423,7 +423,6 @@ truenil
             local store = require("resty.openssl.x509.store")
 
             local s1 = myassert(store.new())
-            local s2 = myassert(store.new())
 
             local f = io.open("t/fixtures/crl/rootca.cert.pem"):read("*a")
             local rootca = myassert(x509.new(f))
@@ -441,6 +440,9 @@ truenil
             myassert(s1:add(rootca))
             myassert(s1:add(subca))
 
+            -- add crl to store, but skip setting the flag
+            myassert(s1:add(c, true))
+
             -- to get the verified_chain first
             local chain1 = myassert(s1:verify(valid_cert, nil, true))
             local chain2 = myassert(s1:verify(revoked_cert, nil, true))
@@ -448,33 +450,6 @@ truenil
             -- no verified_chain
             local ok, err = s1:check_revocation()
             ngx.say(ok, err)
-
-            -- no crl
-            local ok, err = s1:check_revocation(chain1)
-            ngx.say(ok, err)
-
-            -- not a x509.crl instance
-            local ok, err = s1:check_revocation(chain1, "error")
-            ngx.say(ok, err)
-
-            -- not a table of x509.crl instance
-            local ok, err = s1:check_revocation(chain1, { "error" })
-            ngx.say(ok, err)
-
-            -- should succeed
-            local ok, err = s1:check_revocation(chain1, c)
-            ngx.say(ok, err)
-
-            -- should succeed
-            local ok, err = s1:check_revocation(chain1, {c})
-            ngx.say(ok, err)
-
-            -- revoked
-            local ok, err = s1:check_revocation(chain2, c)
-            ngx.say(ok, err)
-
-            -- add crl to store
-            myassert(s1:add(c))
 
             -- should succeed
             local ok, err = s1:check_revocation(chain1)
@@ -489,12 +464,6 @@ truenil
     GET /t
 --- response_body_like eval
 "nil(?:x509\.store:check_revocation: expect a x509\.chain instance at #1|x509\.store:check_revocation: this API is not supported in BoringSSL)
-nil(?:unable to get certificate CRL|x509\.store:check_revocation: this API is not supported in BoringSSL)
-nil(?:x509\.store:check_revocation: expect a x509\.crl instance or a table of x509\.crl instance at #2|x509\.store:check_revocation: this API is not supported in BoringSSL)
-nil(?:x509\.store:check_revocation: expect a x509\.crl instance or a table of x509\.crl instance at #2|x509\.store:check_revocation: this API is not supported in BoringSSL)
-(?:truenil|nilx509\.store:check_revocation: this API is not supported in BoringSSL)
-(?:truenil|nilx509\.store:check_revocation: this API is not supported in BoringSSL)
-nil(?:certificate revoked|x509\.store:check_revocation: this API is not supported in BoringSSL)
 (?:truenil|nilx509\.store:check_revocation: this API is not supported in BoringSSL)
 nil(?:certificate revoked|x509\.store:check_revocation: this API is not supported in BoringSSL)
 "
@@ -513,7 +482,6 @@ nil(?:certificate revoked|x509\.store:check_revocation: this API is not supporte
             local store = require("resty.openssl.x509.store")
 
             local s1 = myassert(store.new())
-            local s2 = myassert(store.new())
 
             local f = io.open("t/fixtures/crl/rootca.cert.pem"):read("*a")
             local rootca = myassert(x509.new(f))
@@ -531,46 +499,19 @@ nil(?:certificate revoked|x509\.store:check_revocation: this API is not supporte
             myassert(s1:add(rootca))
             myassert(s1:add(subca))
 
+            -- add crl to store, but skip setting the flag
+            myassert(s1:add(c, true))
+
             -- to get the verified_chain first
             local chain1 = myassert(s1:verify(valid_cert, nil, true))
             local chain2 = myassert(s1:verify(revoked_cert, nil, true))
 
-            -- no verified_chain
             local ok, err = s1:check_revocation()
             ngx.say(ok, err)
 
-            -- no crl
             local ok, err = s1:check_revocation(chain1)
             ngx.say(ok, err)
 
-            -- not a x509.crl instance
-            local ok, err = s1:check_revocation(chain1, "error")
-            ngx.say(ok, err)
-
-            -- not a table of x509.crl instance
-            local ok, err = s1:check_revocation(chain1, { "error" })
-            ngx.say(ok, err)
-
-            -- should succeed
-            local ok, err = s1:check_revocation(chain1, crl)
-            ngx.say(ok, err)
-
-            -- should succeed
-            local ok, err = s1:check_revocation(chain1, {crl})
-            ngx.say(ok, err)
-
-            -- revoked
-            local ok, err = s1:check_revocation(chain2, crl)
-            ngx.say(ok, err)
-
-            -- add crl to store
-            s1:add(crl)
-
-            -- should succeed
-            local ok, err = s1:check_revocation(chain1)
-            ngx.say(ok, err)
-
-            -- revoked
             local ok, err = s1:check_revocation(chain2)
             ngx.say(ok, err)
         }
@@ -579,12 +520,6 @@ nil(?:certificate revoked|x509\.store:check_revocation: this API is not supporte
     GET /t
 --- response_body_like eval
 "nil(?:x509\.store:check_revocation: this API is supported from OpenSSL 1\.1\.0|x509\.store:check_revocation: this API is not supported in BoringSSL)
-nil(?:x509\.store:check_revocation: this API is supported from OpenSSL 1\.1\.0|x509\.store:check_revocation: this API is not supported in BoringSSL)
-nil(?:x509\.store:check_revocation: this API is supported from OpenSSL 1\.1\.0|x509\.store:check_revocation: this API is not supported in BoringSSL)
-nil(?:x509\.store:check_revocation: this API is supported from OpenSSL 1\.1\.0|x509\.store:check_revocation: this API is not supported in BoringSSL)
-nil(?:x509\.store:check_revocation: this API is supported from OpenSSL 1\.1\.0|x509\.store:check_revocation: this API is not supported in BoringSSL)
-nil(?:x509\.store:check_revocation: this API is supported from OpenSSL 1\.1\.0|x509\.store:check_revocation: this API is not supported in BoringSSL)
-nil(?:x509\.store:check_revocation: this API is supported from OpenSSL 1\.1\.0|x509\.store:check_revocation: this API is not supported in BoringSSL)
 nil(?:x509\.store:check_revocation: this API is supported from OpenSSL 1\.1\.0|x509\.store:check_revocation: this API is not supported in BoringSSL)
 nil(?:x509\.store:check_revocation: this API is supported from OpenSSL 1\.1\.0|x509\.store:check_revocation: this API is not supported in BoringSSL)
 "
