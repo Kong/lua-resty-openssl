@@ -8,7 +8,6 @@ local x509_vfy_macro = require "resty.openssl.include.x509_vfy"
 local x509_lib = require "resty.openssl.x509"
 local chain_lib = require "resty.openssl.x509.chain"
 local crl_lib = require "resty.openssl.x509.crl"
-local stack_lib = require "resty.openssl.stack"
 local ctx_lib = require "resty.openssl.ctx"
 local format_all_error = require("resty.openssl.err").format_all_error
 local format_error = require("resty.openssl.err").format_error
@@ -21,12 +20,6 @@ local mt = { __index = _M }
 
 _M.verify_flags = x509_vfy_macro.verify_flags
 local flag_crl_check = _M.verify_flags.X509_V_FLAG_CRL_CHECK
-
-local crl_stack_M = {}
-local STACK = "X509_CRL"
-local crl_stack_new = stack_lib.new_of(STACK)
-local crl_stack_add = stack_lib.add_of(STACK)
-local crl_stack_mt = stack_lib.mt_of(STACK, crl_lib.dup, crl_stack_M)
 
 local x509_store_ptr_ct = ffi.typeof('X509_STORE*')
 
