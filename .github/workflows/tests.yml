@@ -171,15 +171,17 @@ jobs:
     - name: Build Nginx
       env:
         NGINX_CC_OPTS: ${{ matrix.nginx_cc_opts }}
+        NGINX_MODULES: ""
       run: |
         if [[ "${{ matrix.extras }}" == *valgrind* ]]; then NGINX_CC_OPTS="$NGINX_CC_OPTS -O0"; fi
+        if [[ "${{ matrix.extras }}" == *lua-kong-nginx-module* ]]; then NGINX_MODULES="$NGINX_MODULES --add-module=../lua-kong-nginx-module"; fi
         export PATH=$BASE_PATH/work/nginx/sbin:$BASE_PATH/../nginx-devel-utils:$PATH
         export LD_LIBRARY_PATH=$LUAJIT_LIB:$LD_LIBRARY_PATH
         export NGX_LUA_LOC=$BASE_PATH/../lua-nginx-module
         export NGX_STREAM_LUA_LOC=$BASE_PATH/../stream-lua-nginx-module
         export
         cd $BASE_PATH
-        if [ ! -e work ]; then ngx-build ${{ matrix.nginx }} --add-module=../ndk-nginx-module --add-module=../lua-nginx-module --add-module=../lua-resty-openssl-aux-module --add-module=../lua-kong-nginx-module --with-http_ssl_module --with-cc-opt="-I$OPENSSL_INC $NGINX_CC_OPTS" --with-ld-opt="-L$OPENSSL_LIB -Wl,-rpath,$OPENSSL_LIB" --with-debug > build.log 2>&1 || (cat build.log && exit 1); fi
+        if [ ! -e work ]; then ngx-build ${{ matrix.nginx }} --add-module=../ndk-nginx-module --add-module=../lua-nginx-module --add-module=../lua-resty-openssl-aux-module $NGINX_MODULES --with-http_ssl_module --with-cc-opt="-I$OPENSSL_INC $NGINX_CC_OPTS" --with-ld-opt="-L$OPENSSL_LIB -Wl,-rpath,$OPENSSL_LIB" --with-debug > build.log 2>&1 || (cat build.log && exit 1); fi
         nginx -V
         ldd `which nginx`|grep -E 'luajit|ssl|pcre'
 
