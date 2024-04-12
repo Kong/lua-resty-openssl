@@ -1,5 +1,6 @@
 local ffi = require "ffi"
 local C = ffi.C
+local os = os
 
 local SOCKET_CTX_INDEX = 1
 local NGX_OK = ngx.OK
@@ -58,7 +59,9 @@ if ngx.config.subsystem == "stream" then
   -- sanity test
   local _ = C.ngx_stream_lua_resty_openssl_aux_get_request_ssl
   local success
-  success, get_sock_ssl = pcall(function() return C.ngx_stream_lua_kong_get_socket_ssl end)
+  if not os.getenv("CI_SKIP_KONG_SSL_FUNCS") then
+    success, get_sock_ssl = pcall(function() return C.ngx_stream_lua_kong_get_socket_ssl end)
+  end
   if not success or get_sock_ssl == nil then
     get_sock_ssl = C.ngx_stream_lua_resty_openssl_aux_get_socket_ssl_ctx
   end
@@ -87,7 +90,9 @@ else
   -- sanity test
   local _ = C.ngx_http_lua_resty_openssl_aux_get_request_ssl
   local success
-  success, get_sock_ssl = pcall(function() return C.ngx_http_lua_kong_ffi_get_socket_ssl end)
+  if not os.getenv("CI_SKIP_KONG_SSL_FUNCS") then
+    success, get_sock_ssl = pcall(function() return C.ngx_http_lua_kong_ffi_get_socket_ssl end)
+  end
   if not success or get_sock_ssl == nil then
     get_sock_ssl = C.ngx_http_lua_resty_openssl_aux_get_socket_ssl
   end
